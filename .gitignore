@@ -1,0 +1,39 @@
+.env
+
+# Poetry
+poetry.lock
+.venv
+dist
+
+# Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+.idea/
+lib/
+lib64/
+parts/
+sdist/
+var/
+venv/
+*.egg-info/
+.installed.cfg
+*.egg
+
+*.manifest
+*.spec
+
+pip-log.txt
+pip-delete-this-directory.txt
