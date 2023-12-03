@@ -11,6 +11,8 @@ python = "^3.11"
 python-dotenv = "^1.0.0"
 elevenlabs = "^0.2.26"
 pynacl = "^1.5.0"
+ffmpeg = "^1.4"
+ffmpeg-python = "^0.2.0"
 
 
 [build-system]

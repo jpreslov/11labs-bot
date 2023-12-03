@@ -1,4 +1,5 @@
 .env
+env_file.txt
 
 # Poetry
 poetry.lock

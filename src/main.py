@@ -12,6 +12,8 @@ load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 ELEVENLABS_TOKEN = os.getenv("ELEVENLABS_TOKEN")
 
+print(f"{DISCORD_TOKEN}")
+
 set_api_key(ELEVENLABS_TOKEN)
 
 intents = discord.Intents.default()
@@ -38,10 +40,15 @@ class ClonedVoice:
 @bot.hybrid_command()
 async def listvoices(ctx):
     name_list = []
+
+
     for v in voice_list:
         name_list.append(v.name)
+
+    embed = discord.Embed(title='Voice List', description=', '.join(name_list))
+
     await ctx.defer(ephemeral=True)
-    await ctx.send(name_list, ephemeral=True)
+    await ctx.send(embed=embed, ephemeral=True)
 
 
 @bot.hybrid_command(
@@ -141,7 +148,7 @@ async def vcgen(ctx, voice_name, prompt, stability=0.5, style=0.6):
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
-    sync_commands.start()
+    await sync_commands.start()
     print(f"{bot.commands}")
      
 
