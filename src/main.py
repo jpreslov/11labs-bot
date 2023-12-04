@@ -109,14 +109,7 @@ async def vcgen(ctx, voice_name, prompt, stability=0.5, style=0.6):
     if selected_voice is None:
         return await ctx.send(f"Voice {voice_name} not found", ephemeral=True)
 
-    voice_id = selected_voice[0].voice_id
-
-    voice_channel = ctx.author.voice.channel
-
-    if ctx.voice_client is None:
-        await voice_channel.connect()
-    else:
-        await ctx.voice_client.move_to(voice_channel)
+    voice_id = selected_voice[0].voice_id 
     
     try:
         audio = generate(
@@ -138,9 +131,18 @@ async def vcgen(ctx, voice_name, prompt, stability=0.5, style=0.6):
         buffer = io.BytesIO(audio)
 
         audio_source = discord.FFmpegPCMAudio(buffer, pipe=True)
+        
+        voice_channel = ctx.author.voice.channel
+        
+        if ctx.voice_client is None:
+            await voice_channel.connect()
+        else:
+            await ctx.voice_client.move_to(voice_channel)
 
         ctx.voice_client.play(audio_source)
-        ctx.voice_client.disconnect()
+
+        # ctx.voice_client.play(source=audio_source,
+        #                       after=lambda _: await voice_client.disconnect())
 
     except Exception as e:
         print(e)

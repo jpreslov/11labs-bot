@@ -1,10 +1,10 @@
-FROM python:3.11.6
-RUN apt update && apt install -y ffmpeg
-RUN curl -sSL https://install.python-poetry.org | python3 -
+FROM python:3.11-slim
 
-COPY pyproject.toml poetry.lock .
-RUN pip install poetry && poetry install --no-root --no-directory
-COPY src/ ./src
-RUN poetry install --no-dev
+RUN python -m venv venv
 
-ENTRYPOINT ["poetry", "run", "python", "src/main.py"]
+COPY requirements.txt .
+
+RUN . venv/bin/activate && venv/bin/python3 -m pip install -r requirements.txt
+
+COPY src/main.py .
+CMD . venv/bin/activate && exec venv/bin/python3 main.py

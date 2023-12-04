@@ -1,3 +1,4 @@
+.env
 env_file.txt
 
 __pycache__
