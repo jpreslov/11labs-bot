@@ -1,5 +1,5 @@
 FROM python:3.11.6
-# WORKDIR /tmp
+RUN apt update && apt install -y ffmpeg
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
 COPY pyproject.toml poetry.lock .

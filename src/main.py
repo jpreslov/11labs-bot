@@ -99,7 +99,7 @@ async def gen(ctx,
 
 @bot.hybrid_command(name="vcgen", description="Generate audio in VC")
 async def vcgen(ctx, voice_name, prompt, stability=0.5, style=0.6): 
-    await ctx.defer()
+    await ctx.defer(ephemeral=True)
 
 
     if ctx.author.voice is None:
@@ -117,7 +117,7 @@ async def vcgen(ctx, voice_name, prompt, stability=0.5, style=0.6):
         await voice_channel.connect()
     else:
         await ctx.voice_client.move_to(voice_channel)
-
+    
     try:
         audio = generate(
             text=prompt,
@@ -133,13 +133,15 @@ async def vcgen(ctx, voice_name, prompt, stability=0.5, style=0.6):
             model="eleven_multilingual_v2"
         )
 
-        await ctx.send("Cooking that up for you", ephemeral=True)
+        await ctx.send("Cooking that up for you", ephemeral=True) 
 
         buffer = io.BytesIO(audio)
 
         audio_source = discord.FFmpegPCMAudio(buffer, pipe=True)
 
-        await ctx.voice_client.play(audio_source)
+        ctx.voice_client.play(audio_source)
+        ctx.voice_client.disconnect()
+
     except Exception as e:
         print(e)
         return await ctx.send(f"Error: {str(e)}", ephemeral=True)
