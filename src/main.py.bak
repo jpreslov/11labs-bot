@@ -30,7 +30,7 @@ voice_list = [v for v in voices() if v.category == "cloned"]
 @tasks.loop(minutes=30.0)
 async def sync_commands():
     print(f"Syncing commands - {datetime.now()}")
-    # bot.tree.sync()
+    bot.tree.sync()
 
 
 class ClonedVoice:
@@ -40,30 +40,28 @@ class ClonedVoice:
 
 
 @bot.slash_command()
-async def listvoices(ctx: nextcord.Interaction):
+async def listvoices(ctx):
     name_list = []
 
     for v in voice_list:
         name_list.append(v.name)
 
-    embed = nextcord.Embed(title="Voice List", description=", ".join(name_list))
+    embed = discord.Embed(title="Voice List", description=", ".join(name_list))
 
-    # await ctx.response.defer(ephemeral=True)
-    await ctx.response.send_message(embed=embed, ephemeral=True)
+    await ctx.defer(ephemeral=True)
+    await ctx.send(embed=embed, ephemeral=True)
 
 
 @bot.slash_command(name="gen", description="Generate audio from voice models")
-async def gen(ctx: nextcord.Interaction, voice_name, prompt, stability=0.5, style=0.6):
-    await ctx.response.defer(ephemeral=True)
+async def gen(ctx, voice_name, prompt, stability=0.5, style=0.6):
+    await ctx.defer(ephemeral=True)
     await ctx.send("Cooking that up for you", ephemeral=True)
 
     selected_voice = [v for v in voice_list if v.name == voice_name]
     print(selected_voice)
 
     if selected_voice is None:
-        return await ctx.response.send_message(
-            f"Voice {voice_name} not found", ephemeral=True
-        )
+        return await ctx.send(f"Voice {voice_name} not found", ephemeral=True)
 
     voice_id = selected_voice[0].voice_id
 
@@ -84,11 +82,11 @@ async def gen(ctx: nextcord.Interaction, voice_name, prompt, stability=0.5, styl
 
         in_memory_file = io.BytesIO(audio)
 
-        author = ctx.user.mention
+        author = ctx.author.mention
 
         await ctx.send(
             content=f"{author} used /gen: voice_name={voice_name}, prompt={prompt}",
-            file=nextcord.File(in_memory_file, filename=voice_name + ".wav"),
+            file=discord.File(in_memory_file, filename=voice_name + ".wav"),
         )
     except Exception as e:
         print(e)
@@ -96,12 +94,10 @@ async def gen(ctx: nextcord.Interaction, voice_name, prompt, stability=0.5, styl
 
 
 @bot.slash_command(name="vcgen", description="Generate audio in VC")
-async def vcgen(
-    ctx: nextcord.Interaction, voice_name, prompt, stability=0.5, style=0.6
-):
-    await ctx.response.defer(ephemeral=True, with_message=True)
+async def vcgen(ctx, voice_name, prompt, stability=0.5, style=0.6):
+    await ctx.defer(ephemeral=True)
 
-    if ctx.user.voice is None:
+    if ctx.author.voice is None:
         return await ctx.send("You are not in a voice channel", ephemeral=True)
     selected_voice = [v for v in voice_list if v.name == voice_name]
 
@@ -125,13 +121,13 @@ async def vcgen(
             model="eleven_multilingual_v2",
         )
 
-        # await ctx.send("Cooking that up for you", ephemeral=True)
+        await ctx.send("Cooking that up for you", ephemeral=True)
 
         buffer = io.BytesIO(audio)
 
         audio_source = nextcord.FFmpegOpusAudio(buffer, pipe=True)
 
-        voice_channel = ctx.user.voice.channel
+        voice_channel = ctx.author.voice.channel
 
         if ctx.voice_client is None:
             await voice_channel.connect()
