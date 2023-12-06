@@ -1,0 +1,10 @@
+version: "3"
+services:
+  11labs-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 11lb:${TAG:-latest}
+    environment:
+      - DISCORD_TOKEN
+      - ELEVENLABS_KEY

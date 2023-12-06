@@ -1,12 +1,11 @@
 import io
-import asyncio
-from datetime import datetime, timedelta
 import os
+from datetime import datetime
 
 import nextcord
-from nextcord.ext import commands, tasks
 from dotenv import load_dotenv
 from elevenlabs import Voice, VoiceSettings, voices, generate, set_api_key
+from nextcord.ext import commands, tasks
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -102,11 +101,15 @@ async def vcgen(
     await ctx.response.defer(ephemeral=True, with_message=True)
 
     if ctx.user.voice is None:
-        return await ctx.send("You are not in a voice channel", ephemeral=True)
+        return await ctx.response.send_message(
+            "You are not in a voice channel", ephemeral=True
+        )
     selected_voice = [v for v in voice_list if v.name == voice_name]
 
     if selected_voice is None:
-        return await ctx.send(f"Voice {voice_name} not found", ephemeral=True)
+        return await ctx.response.send_message(
+            f"Voice {voice_name} not found", ephemeral=True
+        )
 
     voice_id = selected_voice[0].voice_id
 
@@ -125,23 +128,18 @@ async def vcgen(
             model="eleven_multilingual_v2",
         )
 
-        # await ctx.send("Cooking that up for you", ephemeral=True)
-
         buffer = io.BytesIO(audio)
 
         audio_source = nextcord.FFmpegOpusAudio(buffer, pipe=True)
 
         voice_channel = ctx.user.voice.channel
 
-        if ctx.voice_client is None:
+        if ctx.guild.voice_client is None:
             await voice_channel.connect()
         else:
-            await ctx.voice_client.move_to(voice_channel)
+            await ctx.guild.voice_client.move_to(voice_channel)
 
-        ctx.voice_client.play(audio_source)
-
-        # ctx.voice_client.play(source=audio_source,
-        #                       after=lambda _: await voice_client.disconnect())
+        ctx.guild.voice_client.play(audio_source)
 
     except Exception as e:
         print(e)
