@@ -1,15 +1,13 @@
-FROM python:3.11-alpine
+FROM python:3.11.6-alpine
 
-# RUN apk add ffmpeg
+WORKDIR /app
 
-RUN python -m venv venv
+RUN pip install --upgrade pip
 
 COPY requirements.txt .
 
-RUN . venv/bin/activate && venv/bin/python3 -m pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src/main.py .
+COPY . .
 
-#EXPOSE 80/udp
-
-CMD . venv/bin/activate && exec venv/bin/python3 main.py
+CMD python3 main.py

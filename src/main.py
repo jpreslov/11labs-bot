@@ -130,7 +130,7 @@ async def vcgen(
 
         buffer = io.BytesIO(audio)
 
-        audio_source = nextcord.FFmpegOpusAudio(buffer, pipe=True)
+        audio_source = nextcord.FFmpegOpusAudio(buffer)
 
         voice_channel = ctx.user.voice.channel
 
@@ -139,10 +139,11 @@ async def vcgen(
         else:
             await ctx.guild.voice_client.move_to(voice_channel)
 
+        print(f"{audio_source}")
         ctx.guild.voice_client.play(audio_source)
 
     except Exception as e:
-        print(e)
+        print(f"{e}")
         return await ctx.send(f"Error: {str(e)}", ephemeral=True)
 
 
