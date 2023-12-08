@@ -9,11 +9,9 @@ from nextcord.ext import commands, tasks
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-ELEVENLABS_TOKEN = os.getenv("ELEVENLABS_TOKEN")
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
-print(f"{DISCORD_TOKEN}")
-
-set_api_key(ELEVENLABS_TOKEN)
+set_api_key(ELEVENLABS_API_KEY)
 
 intents = nextcord.Intents.default()
 # intents.sync_commands = True
@@ -128,20 +126,24 @@ async def vcgen(
             model="eleven_multilingual_v2",
         )
 
+        print(type(audio))
+
+        if not isinstance(audio, bytes):
+            audio = audio.encode("utf-8")
+
         buffer = io.BytesIO(audio)
 
-        audio_source = nextcord.FFmpegPCMAudio(buffer, pipe=True)
+        audio_source = nextcord.FFmpegOpusAudio(buffer, pipe=True)
 
         voice_channel = ctx.user.voice.channel
-
-        print(f"{ctx.guild}, {voice_channel}")
 
         if ctx.guild.voice_client is None:
             await voice_channel.connect()
         else:
             await ctx.guild.voice_client.move_to(voice_channel)
 
-        ctx.guild.voice_client.play(audio_source, after=)
+        print(f"{audio_source}")
+        ctx.guild.voice_client.play(audio_source)
 
     except Exception as e:
         print(f"{e}")

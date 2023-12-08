@@ -1,4 +1,5 @@
 .env
+env.list
 env_file.txt
 
 __pycache__
