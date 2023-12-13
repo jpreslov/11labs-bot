@@ -1,11 +1,15 @@
 import io
 import os
-from datetime import datetime
+import tempfile
+import subprocess
 
 import nextcord
+from datetime import datetime
 from dotenv import load_dotenv
 from elevenlabs import Voice, VoiceSettings, voices, generate, set_api_key
 from nextcord.ext import commands, tasks
+
+from pydub import AudioSegment
 
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -45,14 +49,13 @@ async def listvoices(ctx: nextcord.Interaction):
 
     embed = nextcord.Embed(title="Voice List", description=", ".join(name_list))
 
-    # await ctx.response.defer(ephemeral=True)
     await ctx.response.send_message(embed=embed, ephemeral=True)
 
 
 @bot.slash_command(name="gen", description="Generate audio from voice models")
 async def gen(ctx: nextcord.Interaction, voice_name, prompt, stability=0.5, style=0.6):
     await ctx.response.defer(ephemeral=True)
-    await ctx.send("Cooking that up for you", ephemeral=True)
+    await ctx.send("Cooking that up for you", ephemeral=True, delete_after=3)
 
     selected_voice = [v for v in voice_list if v.name == voice_name]
     print(selected_voice)
@@ -92,18 +95,16 @@ async def gen(ctx: nextcord.Interaction, voice_name, prompt, stability=0.5, styl
         return await ctx.send(f"Error: {str(e)}", ephemeral=True)
 
 
-@bot.slash_command(name="vcgen", description="Generate audio in VC")
+@bot.slash_command(name="vcgen", description="Generate audio and play it in VC")
 async def vcgen(
     ctx: nextcord.Interaction, voice_name, prompt, stability=0.5, style=0.6
 ):
-    await ctx.response.defer(ephemeral=True, with_message=True)
+    await ctx.response.defer(ephemeral=True)
 
     if ctx.user.voice is None:
-        return await ctx.response.send_message(
-            "You are not in a voice channel", ephemeral=True
-        )
-    selected_voice = [v for v in voice_list if v.name == voice_name]
+        return await ctx.send("You are not in a voice channel", ephemeral=True)
 
+    selected_voice = [v for v in voice_list if v.name == voice_name]
     if selected_voice is None:
         return await ctx.response.send_message(
             f"Voice {voice_name} not found", ephemeral=True
@@ -126,15 +127,6 @@ async def vcgen(
             model="eleven_multilingual_v2",
         )
 
-        print(type(audio))
-
-        if not isinstance(audio, bytes):
-            audio = audio.encode("utf-8")
-
-        buffer = io.BytesIO(audio)
-
-        audio_source = nextcord.FFmpegOpusAudio(buffer, pipe=True)
-
         voice_channel = ctx.user.voice.channel
 
         if ctx.guild.voice_client is None:
@@ -142,12 +134,20 @@ async def vcgen(
         else:
             await ctx.guild.voice_client.move_to(voice_channel)
 
-        print(f"{audio_source}")
-        ctx.guild.voice_client.play(audio_source)
+        with tempfile.NamedTemporaryFile(
+            suffix=".wav", delete=False
+        ) as wav_f, tempfile.NamedTemporaryFile(suffix=".opus", delete=False) as opus_f:
+            wav_f.write(audio)
+            wav_f.flush()
+            subprocess.check_call(["ffmpeg", "-y", "-i", wav_f.name, opus_f.name])
+            source = nextcord.FFmpegOpusAudio(opus_f.name)
+
+            ctx.guild.voice_client.play(source=source)
 
     except Exception as e:
         print(f"{e}")
-        return await ctx.send(f"Error: {str(e)}", ephemeral=True)
+        await ctx.send(f"Error: {str(e)}", ephemeral=True)
+        return await ctx.guild.voice_client.disconnect(force=True)
 
 
 @bot.event
