@@ -1,5 +1,7 @@
 # ElevenLabs Discord Bot
 
+> Requires you add your own Discord token and ElevenLabs API key
+
 ## `/listvoices`
 List custom (cloned) voices specific to your account
 
